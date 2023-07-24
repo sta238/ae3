@@ -1,0 +1,215 @@
+---
+title: "Estimation"
+output: learnr::tutorial
+runtime: shiny_prerendered
+---
+
+```{r setup-hide, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(learnr)
+```
+
+## Estimators
+Let's consider the dataset `gradebook` again. The following code has been run to load the data and the libraries we'll need:
+```{r setup, include=TRUE, message = FALSE}
+library(tidyverse)
+library(patchwork)
+
+gradebook <- read.csv("https://raw.githubusercontent.com/sta238/data/main/gradebook.csv") %>% 
+  mutate(final = 0.1*assignment1 + 0.1*assignment2 + 0.3*midterm + 0.5*exam,
+    A = ifelse(final >= 0.8 , 1, 0))
+```
+Notice that two new columns are added; `final` is the marks for the course, calculated as a weighted average of the course components, and `A` is an indicator of whether or not the student received a grade of A or higher in the course.
+
+I want to estimate the proportion of the students who got a grade of A or higher, represented by $\theta$. We will use three different approaches: the maximum likelihood principle, Bayes rule, and the bootstrap principle. 
+
+### Maximum Likelihood Estimation
+
+```{r q_distribution_likelihood, echo=FALSE}
+question("What is the distribution for the event that a student gets a grade of A or higher?",
+  answer("Bernoulli", correct = TRUE),
+  answer("Normal"),
+  answer("Binomial"),
+  answer("Beta"),
+  allow_retry = TRUE,
+  random_answer_order = TRUE,
+  incorrect = "Try again",
+  try_again = "Try again"
+)
+```
+
+Write a function for the likelihood function and plot it. In class, we derived the *maximum likelihood estimator* for $\theta$, $\widehat\theta_{MLE}$. Calculate a *maximum likelihood estimate* using the data in `gradebook` and include it in your plot as a red, dashed vertical line. 
+
+```{r MLE, exercise=TRUE}
+likelihood <- function(x, theta) {
+
+}
+
+thetahat <- 
+
+tibble(para_values = c(0.01,0.99)) %>%
+  ggplot(aes(x = para_values)) +
+## code for the plot goes here ##
+  
+  labs(caption = stringr::str_c("The red dashed line shows that the MLE is ", round(thetahat, 3)), # provides an informative caption!
+       x = "theta", y = "likelihood") +
+  theme(plot.caption = element_text(size = 12))
+```
+
+
+
+### Bayesian Inference
+
+Let's put a beta prior on $\theta$. In class, we derived the posterior distribution for a beta priors and a likelihood from the same family of distributions as we're using here. Write a function to plot the prior in blue and posterior in purple. Plot the function for 3-4 sets of values for the hyperparmeters that could represent your belief, indicating the values chosen on each plot (try using `subtitle = str_c("With hyperparameters alpha: ", a," and beta: ", b,"")`).
+
+```{r Bayes, exercise=TRUE}
+n <- 
+sumx <-
+
+prior <- function(theta, a, b) {} 
+posterior <- function(theta, a, b) {}
+
+
+```
+
+To get an Bayesian estimate for $\theta$, let's compute the *posterior mean*, that is, the expectation of the posterior distribution. (We will discuss some other options for Bayesian estimators when we revisit the topic in a later lecture.) 
+
+Given a Beta distributed random variable $Y\sim\text{Beta}(\alpha, \beta)$, the expectation is 
+$$ 
+\mathbb{E}[Y] = \frac{\alpha}{\alpha+\beta}
+$$
+Choose your favourite prior and compute $\widehat\theta_{Bayes}=\mathbb{E}[\theta|x]$. Plot the prior (blue), posterior (purple), and indicate the Bayes estimate with a dashed red line. Use similar code as suggested for a plot of the MLE to add an informative caption.
+
+```{r Bayes_est, exercise=TRUE}
+# hyperparameters of the prior
+a <- 
+b <- 
+
+# numerical data summaries 
+n <- 
+sumx <- 
+
+alpha <- 
+beta <- 
+
+thetahat <- 
+
+## plot ##
+
+
+
+
+```
+
+
+### Compare MLE & Bayes
+
+The estimates I got for $\theta$ from MLE and Bayes very similar between. To consider how they may differ, consider taking a sample of $n$ students from the class and finding the MLE and Bayes estimates for that sample. Do this for all values of $n$ in the code below. Plot the resulting estimates, with different colours for the different methods. Some of the code is sketched out for you.
+
+```{r compare, exercise = TRUE}
+# hyperparameters of the prior
+a <- 
+b <- 
+
+# list of sample sizes
+n <- 
+
+# pull a sample of size n and compute the number of A's in the sample
+
+
+# combine into a tibble and compute the estimates for each method
+thetahats <- tibble(n, sumx) %>%
+  mutate(MLE = , # fill in the formula here
+         Bayes =  # fill in the formula here
+         ) %>%
+  pivot_longer( ) %>% # fill in, to prepare for plotting
+  select(-sumx)
+
+## plot ##
+
+```
+
+
+
+## Bootstrap
+
+So far, we've found what are called *point estimates*. Point estimates are our "best guesses" for a parameter value, based on the data we have. But we haven't said anything about the variability of those estimates. In general, we want to report on the variability of an estimator, but closed-form solutions can be difficult to come by. Bootstrapping is an important method because of it's effectiveness for finding the variability of an estimator. The kind of variability that we'll consider here is called the *standard error*, the standard deviation of an estimator's sampling distribution.
+
+Use an empirical bootstrap to estimate the proportion of students who's get an A or higher in the course, $\theta$, and the standard error of $\widehat\theta$. Plot a histogram of the bootstrap distribution for $\widehat\theta$ with a layer showing a density function for a normal distribution with appropriate parameter values (for a normal approximation to the binomial).
+
+```{r boot_emp, exercise = TRUE}
+n <- 
+B <- 
+
+set.seed(238)
+## bootstrap sample ##
+
+bootest <- 
+bootse <- 
+stringr::str_c("The empirical bootstrap estimate is ", round(bootest, 4), ", with a standard error of ", round(bootse, 4))
+
+## plot ##
+
+```
+
+
+Use a parametric bootstrap to, again, estimate $\theta$ and the standard error of $\widehat\theta$, and plot a histogram of the bootstrap distribution for $\widehat\theta$.
+
+```{r boot_para, exercise = TRUE}
+n <- 
+B <- 
+
+
+set.seed(238)
+## bootstrap sample ##
+
+bootest <- mean(boottheta)
+bootse <- sd(boottheta)
+stringr::str_c("The parametric bootstrap estimate is ", round(bootest, 4), ", with a standard error of ", round(bootse, 4))
+
+## plot ##
+
+```
+
+
+
+### Exam marks
+
+```{r include=FALSE}
+a <- 9
+b <- 3
+sigma2 <- (a*b) / ((a+b)^2 * (a+b+1))
+mu <- a/(a+b)
+```
+
+Suppose we wanted to estimate the mean of the exam marks, $\mu$ and I can tell you that the true variance is $0.01442308$. However, you only have a sample of 20 marks. Assume the marks are normally distributed. Compute the maximum likelihood and Bayes estimates, and use the bootstrap to get an estimate of the error for each. Try it for different values of your hyper-parameters. Can you find values of the hyper-parameters that changes the error?
+
+```{r known_sigma, exercise = TRUE}
+n <- 
+set.seed(238)
+x <- sample(gradebook$exam, n, replace=FALSE)
+
+# MLE
+muhat_mle <- 
+
+# Bayes estimate
+## define hyper-parameters ##
+muhat_bayes <- 
+
+# Bootstrap to estimate the errors
+B <- 
+set.seed(238)
+## bootstrap sample ##
+
+booterr_mle <- 
+booterr_bayes <- 
+
+stringr::str_c("The MLE is ", round(muhat_mle, 4), ", the Bayes estimate is ", round(muhat_bayes, 4), ", and the bootstrap estimates for the errors are ", round(booterr_mle, 6), " and ", round(booterr_bayes, 6), ", respectively.")
+```
+
+
+
+
+
+
+
